@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.27703.2047
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdobeSign", "AdobeSign\AdobeSign.csproj", "{7E24E842-7015-419E-8ADD-B8B4D853F09E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AdobeSign.Tester", "AdobeSign.Tester\AdobeSign.Tester.csproj", "{2B00180E-855C-4A92-947E-27ABEC9833DF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{7E24E842-7015-419E-8ADD-B8B4D853F09E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7E24E842-7015-419E-8ADD-B8B4D853F09E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7E24E842-7015-419E-8ADD-B8B4D853F09E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B00180E-855C-4A92-947E-27ABEC9833DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B00180E-855C-4A92-947E-27ABEC9833DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B00180E-855C-4A92-947E-27ABEC9833DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B00180E-855C-4A92-947E-27ABEC9833DF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

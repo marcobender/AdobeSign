@@ -1,0 +1,35 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+
+<h2>ApiClient</h2>
+<p>
+    Login URL<br />
+    <a href="@ViewBag.LoginURL">@Html.Raw(ViewBag.LoginURL.Replace("&", "<br/>&").Replace("?", "<br />&"))</a><br />
+</p>
+<p>
+<pre>
+AccessToken:        @HttpContext.Current.Session["AccessToken"]
+RefreshToken:       @HttpContext.Current.Session["RefreshToken"] 
+TokenExpireDate:    @HttpContext.Current.Session["TokenExpireDate"]
+ApiAccessPoint:     @HttpContext.Current.Session["ApiAccessPoint"]
+</pre>
+</p>
+
+<ul>
+    <li><a href="/?action=refresh">RefreshAccessToken</a></li>
+
+    <li><a href="/?action=GetAgreements">GetAgreements</a></li>
+
+    <li><a href="/?action=CreateTransientDocument">CreateTransientDocument</a></li>
+</ul>
+
+<p>
+<pre>
+@ViewBag.Stuff
+</pre>
+</p>
+
+
+

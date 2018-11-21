@@ -10,46 +10,211 @@ using System.Text;
 using Newtonsoft.Json;
 using RestSharp;
 using RestSharp.Extensions;
+using AdobeSign.Model;
 
 namespace AdobeSign.Client
 {
     /// <summary>
-    /// API client is mainly responible for making the HTTP call to the API backend.
+    /// Adobe Sign API client 
     /// </summary>
     public class ApiClient
     {
-        private readonly Dictionary<String, String> _defaultHeaderMap = new Dictionary<String, String>();
-  
+
+        /// <summary>
+        /// Gets the Api Access Point URL. (Default https://api.na2.echosign.com)
+        /// </summary>
+        public string ApiAccessPoint { get; internal set; }
+        /// <summary>
+        /// Gets the Web Access Point URL. (Default https://secure.na2.echosign.com)
+        /// </summary>
+        public string WebAccessPoint { get; internal set; }
+
+
+
+        public string AccessToken { get; internal set; }
+        public string RefreshToken { get; internal set; }
+        public DateTime? TokenExpireDate { get; internal set; }
+
+        /// <summary>
+        /// oauth client Id
+        /// </summary>
+        /// <value>The base path</value>
+        public string ClientId { get; internal set; }
+
+
+        /// <summary>
+        /// oauth Client Secret
+        /// </summary>
+        /// <value>The base path</value>
+        public string ClientSecret { get; internal set; }
+
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ApiClient" /> class.
         /// </summary>
-        /// <param name="basePath">The base path.</param>
-        public ApiClient(String basePath="https://secure.na1.echosign.com/api/rest/v6")
+        public ApiClient(
+            string clientId,
+            string clientSecret,
+            string webAccessPoint = "https://secure.na1.echosign.com")
         {
-            BasePath = basePath;
-            RestClient = new RestClient(BasePath);
+            this.ClientId = clientId;
+            this.ClientSecret = clientSecret;
+            this.WebAccessPoint = webAccessPoint;;
         }
-    
+
+
         /// <summary>
-        /// Gets or sets the base path.
+        /// https://secure.na1.echosign.com/public/static/oauthDoc.jsp
         /// </summary>
-        /// <value>The base path</value>
-        public string BasePath { get; set; }
-    
+        /// <param name="redirect_uri">a secure, absolute URI</param>
+        /// <param name="scope">space delimited set of the permissions that the user will be asked to approve </param>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        public string GetAuthorizationRequestURL(string redirect_uri, 
+            string scope = "user_login:self agreement_write:account agreement_read:account", string state = null)
+        {
+            return $"{this.WebAccessPoint}/public/oauth?redirect_uri={this.EscapeString(redirect_uri)}&response_type=code&client_id={this.ClientId}&scope={this.EscapeString(scope)}&state={this.EscapeString(state)}";
+
+        }
+        public void SetAccessToken(
+            string accessToken,
+            string refreshToken,
+            DateTime tokenExpireDate,
+            string apiAccessPoint)
+        {
+            this.AccessToken = accessToken;
+            this.RefreshToken = refreshToken;
+            this.TokenExpireDate = tokenExpireDate;
+            this.ApiAccessPoint = apiAccessPoint;
+            this.RestClient = new RestClient(this.ApiAccessPoint + "/api/rest/v6");
+        }
+
+        /// <summary>
+        /// https://secure.na1.echosign.com/public/static/oauthDoc.jsp
+        /// </summary>
+        /// <param name="redirect_uri">must match the value used during the previous step</param>
+        /// <param name="code">the authorization code obtained</param>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        public AdobeSign.Model.ApiToken GetAccessToken(
+            string redirect_uri,
+            string code,
+            string api_access_point= null)
+        {
+            this.ApiAccessPoint = api_access_point ?? this.ApiAccessPoint ?? "https://api.na2.echosign.com";
+
+            var authRestClient = new RestClient(this.ApiAccessPoint);
+
+
+            if (code == null)
+                throw new ApiException(500, "Missing required 'code'.");
+
+            var request = new RestRequest("/oauth/token",  Method.POST);
+            request.AddParameter("grant_type", "authorization_code");
+            request.AddParameter("client_id", this.ClientId);
+            request.AddParameter(  "client_secret" , this.ClientSecret);
+            request.AddParameter(  "redirect_uri" , redirect_uri);
+            request.AddParameter(  "code" , code);
+
+            var response = authRestClient.Execute(request);
+
+            
+
+            if (((int)response.StatusCode) >= 400)
+            {
+                if (response.Content != null && response.ContentType.StartsWith("application/json"))
+                {
+                    var a = JsonConvert.DeserializeObject<ApiError>(response.Content);
+                    throw new ApiException((int)response.StatusCode, "Error calling /oauth/token: " + a.GetError(), a.GetDescription());
+                }
+                throw new ApiException((int)response.StatusCode, "Error calling /oauth/token: " + response.Content, response.Content);
+            }
+            else if (((int)response.StatusCode) == 0)
+                throw new ApiException((int)response.StatusCode, "Error calling /oauth/token: " + response.ErrorMessage, response.ErrorMessage);
+
+            var t = (AdobeSign.Model.ApiToken)this.Deserialize(response.Content, typeof(AdobeSign.Model.ApiToken), response.Headers);
+
+            this.AccessToken = t.AccessToken;
+            this.RefreshToken = t.RefreshToken;
+            this.TokenExpireDate = DateTime.UtcNow.AddSeconds(t.ExpiresIn);
+            
+            this.RestClient = new RestClient(this.ApiAccessPoint + "/api/rest/v6");
+
+            return t;
+
+        }
+
+
+
+        /// <summary>
+        /// https://secure.na1.echosign.com/public/static/oauthDoc.jsp
+        /// </summary>
+        /// <param name="redirect_uri">must match the value used during the previous step</param>
+        /// <param name="code">the authorization code obtained</param>
+        /// <param name="state"></param>
+        /// <returns></returns>
+        public AdobeSign.Model.ApiToken RefreshAccessToken(
+            string refresh_token = null,
+            string api_access_point = null)
+        {
+            this.ApiAccessPoint = api_access_point ?? this.ApiAccessPoint ?? "https://api.na2.echosign.com";
+
+            var authRestClient = new RestClient(this.ApiAccessPoint);
+
+            if (refresh_token == null)
+                refresh_token = this.RefreshToken;
+
+
+            if (refresh_token == null)
+                throw new ApiException(500, "Missing required 'RefreshToken'.");
+
+            var request = new RestRequest("/oauth/refresh", Method.POST);
+            request.AddParameter("grant_type", "refresh_token");
+            request.AddParameter("client_id", this.ClientId);
+            request.AddParameter("client_secret", this.ClientSecret);
+            request.AddParameter("refresh_token", refresh_token );
+
+            var response = authRestClient.Execute(request);
+
+
+
+            if (((int)response.StatusCode) >= 400)
+            {
+                if (response.Content != null && response.ContentType.StartsWith("application/json"))
+                {
+                    var a = JsonConvert.DeserializeObject<ApiError>(response.Content);
+                    throw new ApiException((int)response.StatusCode, "Error calling /oauth/token: " + a.GetError(), a.GetDescription());
+                }
+                throw new ApiException((int)response.StatusCode, "Error calling /oauth/token: " + response.Content, response.Content);
+            }
+            else if (((int)response.StatusCode) == 0)
+                throw new ApiException((int)response.StatusCode, "Error calling /oauth/token: " + response.ErrorMessage, response.ErrorMessage);
+
+            var t = (AdobeSign.Model.ApiToken)this.Deserialize(response.Content, typeof(AdobeSign.Model.ApiToken), response.Headers);
+            
+            t.RefreshToken = t.RefreshToken ?? refresh_token ;
+
+            this.AccessToken = t.AccessToken;
+            this.RefreshToken = t.RefreshToken;
+            this.TokenExpireDate = DateTime.UtcNow.AddSeconds(t.ExpiresIn);
+
+
+            this.RestClient = new RestClient(this.ApiAccessPoint + "/api/rest/v6");
+
+            return t;
+
+        }
+
+
+        ///////////////////////////// /////////////////////////////
+
         /// <summary>
         /// Gets or sets the RestClient.
         /// </summary>
         /// <value>An instance of the RestClient</value>
-        public RestClient RestClient { get; set; }
-    
-        /// <summary>
-        /// Gets the default header.
-        /// </summary>
-        public Dictionary<String, String> DefaultHeader
-        {
-            get { return _defaultHeaderMap; }
-        }
-    
+        internal RestClient RestClient { get; set; }
+
+
         /// <summary>
         /// Makes the HTTP request (Sync).
         /// </summary>
@@ -62,78 +227,151 @@ namespace AdobeSign.Client
         /// <param name="fileParams">File parameters.</param>
         /// <param name="authSettings">Authentication settings.</param>
         /// <returns>Object</returns>
-        public Object CallApi(String path, RestSharp.Method method, Dictionary<String, String> queryParams, String postBody,
+        internal IRestResponse CallApi(String path, RestSharp.Method method, Dictionary<String, String> queryParams, String postBody,
             Dictionary<String, String> headerParams, Dictionary<String, String> formParams, 
             Dictionary<String, FileParameter> fileParams, String[] authSettings)
         {
 
             var request = new RestRequest(path, method);
-   
-            UpdateParamsForAuth(queryParams, headerParams, authSettings);
 
-            // add default header, if any
-            foreach(var defaultHeader in _defaultHeaderMap)
-                request.AddHeader(defaultHeader.Key, defaultHeader.Value);
+
+            if (headerParams == null)
+                headerParams = new Dictionary<string, string>();
+            if (!headerParams.ContainsKey("Authorization"))
+            {
+                if (this.AccessToken==null)
+                    throw new ApiException(400, "Missing required 'AccessToken' when calling the API");
+                if (this.TokenExpireDate.HasValue && this.TokenExpireDate< DateTime.UtcNow)
+                {
+                    if (this.RefreshToken == null)
+                        throw new ApiException(400, "Expired 'AccessToken'");
+
+                    RefreshAccessToken();
+                }
+                headerParams.Add("Authorization", this.ParameterToString("Bearer " + this.AccessToken));
+            }
 
             // add header parameter, if any
-            foreach(var param in headerParams)
+            foreach (var param in headerParams)
                 request.AddHeader(param.Key, param.Value);
 
-            // add query parameter, if any
-            foreach(var param in queryParams)
-                request.AddParameter(param.Key, param.Value, ParameterType.GetOrPost);
+            if (queryParams != null)
+            {
+                // add query parameter, if any
+                foreach (var param in queryParams)
+                    request.AddParameter(param.Key, param.Value, ParameterType.GetOrPost);
 
-            // add form parameter, if any
-            foreach(var param in formParams)
-                request.AddParameter(param.Key, param.Value, ParameterType.GetOrPost);
+            }
+            if (formParams != null)
+            {
+                // add form parameter, if any
+                foreach (var param in formParams)
+                    request.AddParameter(param.Key, param.Value, ParameterType.GetOrPost);
+            }
 
-            // add file parameter, if any
-            foreach(var param in fileParams)
-                request.AddFile(param.Value.Name, param.Value.Writer, param.Value.FileName, param.Value.ContentLength,  param.Value.ContentType);
-
+            if (fileParams != null)
+            {
+                // add file parameter, if any
+                foreach (var param in fileParams)
+                    request.AddFile(param.Value.Name, param.Value.Writer, param.Value.FileName, param.Value.ContentLength, param.Value.ContentType);
+            }
             if (postBody != null) // http body (model) parameter
                 request.AddParameter("application/json", postBody, ParameterType.RequestBody);
 
-            return (Object)RestClient.Execute(request);
+            var response = RestClient.Execute(request);
+            if (((int)response.StatusCode) >= 400)
+            {
+                ApiError a = null;
+                try
+                {
+                    if (response.Content != null && response.ContentType.StartsWith("application/json"))
+                        a = JsonConvert.DeserializeObject<ApiError>(response.Content);
+                }
+                catch { }
+
+                if (a != null)
+                    throw new ApiException((int)response.StatusCode, $"Error calling {method} {path}: {a.GetError()}", a.GetDescription());
+                else
+                    throw new ApiException((int)response.StatusCode, $"Error calling {method} {path}: {response.Content}", response.Content);
+            }
+            else if (((int)response.StatusCode) == 0)
+                throw new ApiException((int)response.StatusCode, $"Error calling {method} {path}: {response.ErrorMessage}", response.ErrorMessage);
+
+
+            return response;
 
         }
-    
+
+       
+
         /// <summary>
-        /// Add default header.
+        /// Makes the HTTP GET request
         /// </summary>
-        /// <param name="key">Header field name.</param>
-        /// <param name="value">Header field value.</param>
-        /// <returns></returns>
-        public void AddDefaultHeader(string key, string value)
+        internal IRestResponse GetRequest(String path, Dictionary<String, String> queryParams = null)
         {
-            _defaultHeaderMap.Add(key, value);
+
+            var response = this.CallApi(path, Method.GET, queryParams, null, null, null, null, null);
+
+            
+            return response;
+
         }
-    
+        /// <summary>
+        /// Makes the HTTP GET request
+        /// </summary>
+        internal T GetRequest<T>(String path, Dictionary<String, String> queryParams=null)
+        {
+            var response = GetRequest(path, queryParams);
+            return (T)this.Deserialize(response.Content, typeof(T), response.Headers);
+        }
+
+
+
+        /// <summary>
+        /// Makes the HTTP GET request
+        /// </summary>
+        internal T FileRequest<T>(String path, byte[] data, string fileName, string mimeType)
+        {
+
+            var formParams = new Dictionary<String, String>();
+            var fileParams = new Dictionary<String, FileParameter>();
+
+            if (fileName != null) formParams.Add("File-Name", this.ParameterToString(fileName)); // form parameter
+            if (mimeType != null) formParams.Add("Mime-Type", this.ParameterToString(mimeType)); // form parameter
+
+            fileParams.Add("File", FileParameter.Create("File", data, fileName ?? "no_file_name_provided", mimeType));
+
+            var response = this.CallApi(path, Method.POST, null, null, null, formParams, fileParams, null);
+
+
+            return (T)this.Deserialize(response.Content, typeof(T), response.Headers);
+
+        }
         /// <summary>
         /// Escape string (url-encoded).
         /// </summary>
         /// <param name="str">String to be escaped.</param>
         /// <returns>Escaped string.</returns>
-        public string EscapeString(string str)
+        internal string EscapeString(string str)
         {
             return HttpUtility.UrlEncode(str);
             
         }
-    
+
         /// <summary>
         /// Create FileParameter based on Stream.
         /// </summary>
         /// <param name="name">Parameter name.</param>
         /// <param name="stream">Input stream.</param>
         /// <returns>FileParameter.</returns>
-        public FileParameter ParameterToFile(string name, Stream stream)
+        internal FileParameter ParameterToFile(string name, Stream stream)
         {
             if (stream is FileStream)
                 return FileParameter.Create(name, stream.ReadAsBytes(), Path.GetFileName(((FileStream)stream).Name));
             else
                 return FileParameter.Create(name, stream.ReadAsBytes(), "no_file_name_provided");
         }
-    
+
         /// <summary>
         /// If parameter is DateTime, output in a formatted string (default ISO 8601), customizable with Configuration.DateTime.
         /// If parameter is a list of string, join the list with ",".
@@ -141,20 +379,20 @@ namespace AdobeSign.Client
         /// </summary>
         /// <param name="obj">The parameter (header, path, query, form).</param>
         /// <returns>Formatted string.</returns>
-        public string ParameterToString(object obj)
+        internal string ParameterToString(object obj)
         {
             if (obj is DateTime)
                 // Return a formatted date string - Can be customized with Configuration.DateTimeFormat
                 // Defaults to an ISO 8601, using the known as a Round-trip date/time pattern ("o")
                 // https://msdn.microsoft.com/en-us/library/az4se3k1(v=vs.110).aspx#Anchor_8
                 // For example: 2009-06-15T13:45:30.0000000
-                return ((DateTime)obj).ToString (Configuration.DateTimeFormat);
+                return ((DateTime)obj).ToString ("o");
             else if (obj is List<string>)
                 return String.Join(",", (obj as List<string>).ToArray());
             else
                 return Convert.ToString (obj);
         }
-    
+
         /// <summary>
         /// Deserialize the JSON string into a proper object.
         /// </summary>
@@ -162,7 +400,7 @@ namespace AdobeSign.Client
         /// <param name="type">Object type.</param>
         /// <param name="headers">HTTP headers.</param>
         /// <returns>Object representation of the JSON string.</returns>
-        public object Deserialize(string content, Type type, IList<Parameter> headers=null)
+        internal object Deserialize(string content, Type type, IList<Parameter> headers=null)
         {
             if (type == typeof(Object)) // return an object
             {
@@ -171,9 +409,7 @@ namespace AdobeSign.Client
 
             if (type == typeof(Stream))
             {
-                var filePath = String.IsNullOrEmpty(Configuration.TempFolderPath)
-                    ? Path.GetTempPath()
-                    : Configuration.TempFolderPath;
+                var filePath = Path.GetTempPath();
 
                 var fileName = filePath + Guid.NewGuid();
                 if (headers != null)
@@ -208,13 +444,13 @@ namespace AdobeSign.Client
                 throw new ApiException(500, e.Message);
             }
         }
-    
+
         /// <summary>
         /// Serialize an object into JSON string.
         /// </summary>
         /// <param name="obj">Object.</param>
         /// <returns>JSON string.</returns>
-        public string Serialize(object obj)
+        internal string Serialize(object obj)
         {
             try
             {
@@ -225,64 +461,27 @@ namespace AdobeSign.Client
                 throw new ApiException(500, e.Message);
             }
         }
-    
-        /// <summary>
-        /// Get the API key with prefix.
-        /// </summary>
-        /// <param name="apiKeyIdentifier">API key identifier (authentication scheme).</param>
-        /// <returns>API key with prefix.</returns>
-        public string GetApiKeyWithPrefix (string apiKeyIdentifier)
-        {
-            var apiKeyValue = "";
-            Configuration.ApiKey.TryGetValue (apiKeyIdentifier, out apiKeyValue);
-            var apiKeyPrefix = "";
-            if (Configuration.ApiKeyPrefix.TryGetValue (apiKeyIdentifier, out apiKeyPrefix))
-                return apiKeyPrefix + " " + apiKeyValue;
-            else
-                return apiKeyValue;
-        }
-    
-        /// <summary>
-        /// Update parameters based on authentication.
-        /// </summary>
-        /// <param name="queryParams">Query parameters.</param>
-        /// <param name="headerParams">Header parameters.</param>
-        /// <param name="authSettings">Authentication settings.</param>
-        public void UpdateParamsForAuth(Dictionary<String, String> queryParams, Dictionary<String, String> headerParams, string[] authSettings)
-        {
-            if (authSettings == null || authSettings.Length == 0)
-                return;
 
-            foreach (string auth in authSettings)
-            {
-                // determine which one to use
-                switch(auth)
-                {
-                    default:
-                        //TODO show warning about security definition not found
-                        break;
-                }
-            }
-        }
- 
+
+
         /// <summary>
         /// Encode string in base64 format.
         /// </summary>
         /// <param name="text">String to be encoded.</param>
         /// <returns>Encoded string.</returns>
-        public static string Base64Encode(string text)
+        internal static string Base64Encode(string text)
         {
             var textByte = System.Text.Encoding.UTF8.GetBytes(text);
             return System.Convert.ToBase64String(textByte);
         }
-    
+
         /// <summary>
         /// Dynamically cast the object into target type.
         /// </summary>
         /// <param name="fromObject">Object to be casted</param>
         /// <param name="toObject">Target type</param>
         /// <returns>Casted object</returns>
-        public static Object ConvertType(Object fromObject, Type toObject) {
+        internal static Object ConvertType(Object fromObject, Type toObject) {
             return Convert.ChangeType(fromObject, toObject);
         }
   
