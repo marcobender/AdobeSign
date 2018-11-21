@@ -9,20 +9,44 @@
     <a href="@ViewBag.LoginURL">@Html.Raw(ViewBag.LoginURL.Replace("&", "<br/>&").Replace("?", "<br />&"))</a><br />
 </p>
 <p>
-<pre>
+    <pre>
 AccessToken:        @HttpContext.Current.Session["AccessToken"]
 RefreshToken:       @HttpContext.Current.Session["RefreshToken"] 
 TokenExpireDate:    @HttpContext.Current.Session["TokenExpireDate"]
 ApiAccessPoint:     @HttpContext.Current.Session["ApiAccessPoint"]
+
+TransientDocumentId:     @HttpContext.Current.Session["TransientDocumentId"]
+AgreementId:     @HttpContext.Current.Session["AgreementId"]
 </pre>
 </p>
 
 <ul>
     <li><a href="/?action=refresh">RefreshAccessToken</a></li>
+    <li><a href="/?action=GetBaseUris">GetBaseUris</a></li>
+</ul>
 
+<ul>
+    <li><a href="/?action=GetUsers">GetUsers</a></li>
+    <li><a href="/?action=GetUserDetail">GetUserDetail</a></li>
+    <li><a href="/?action=GetGroupsOfUser">GetGroupsOfUser</a></li>
+</ul>
+<ul>
     <li><a href="/?action=GetAgreements">GetAgreements</a></li>
-
     <li><a href="/?action=CreateTransientDocument">CreateTransientDocument</a></li>
+    <li><a href="/?action=CreateAgreement">CreateAgreement</a></li>
+    <li><a href="/?action=signingUrls">signingUrls</a></li>
+    <li><a href="/?action=GetFormData">GetFormData</a></li>
+    <li><a href="/?action=GetFormFields">GetFormFields</a></li>
+    <li><a href="/?action=GetCombinedDocument">GetCombinedDocument</a></li>
+    <li><a href="/?action=GetCombinedDocumentUrl">GetCombinedDocumentUrl</a></li>
+    <li><a href="/?action=GetAgreementInfo">GetAgreementInfo</a></li>
+</ul>
+
+<ul>
+    <li><a href="/?action=GetWebhooks">GetWebhooks</a></li>
+    <li><a href="/?action=GetWebhookInfo">GetWebhookInfo</a></li>
+    <li><a href="/?action=DeleteWebhook">DeleteWebhook</a></li>
+    <li><a href="/?action=CreateWebhook">CreateWebhook</a></li>
 </ul>
 
 <p>

@@ -37,7 +37,7 @@ namespace AdobeSign.BaseUris.Api
         public BaseUriInfo GetBaseUris ()
         {
             
-            return ApiClient.GetRequest<BaseUriInfo>("/baseUris");
+            return ApiClient.CallApiGet<BaseUriInfo>("/baseUris");
 
         }
     

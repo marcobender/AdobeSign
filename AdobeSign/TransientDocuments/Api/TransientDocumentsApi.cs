@@ -82,7 +82,9 @@ namespace AdobeSign.TransientDocuments.Api
         /// </summary>
         public TransientDocumentResponse CreateTransientDocument(byte[] file, string fileName = null, string mimeType = null)
         {
-            return ApiClient.FileRequest<TransientDocumentResponse>("/transientDocuments", file, fileName, mimeType);
+            var response  =  ApiClient.CallApiFile("/transientDocuments", file, fileName, mimeType);
+            return (TransientDocumentResponse)ApiClient.Deserialize(response.Content, typeof(TransientDocumentResponse), response.Headers);
+
 
         }
 

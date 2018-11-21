@@ -30,6 +30,7 @@ namespace AdobeSign.Client
         public string WebAccessPoint { get; internal set; }
 
 
+        public string LastETag { get; internal set; }
 
         public string AccessToken { get; internal set; }
         public string RefreshToken { get; internal set; }
@@ -71,7 +72,7 @@ namespace AdobeSign.Client
         /// <param name="state"></param>
         /// <returns></returns>
         public string GetAuthorizationRequestURL(string redirect_uri, 
-            string scope = "user_login:self agreement_write:account agreement_read:account", string state = null)
+            string scope = "user_login:self agreement_write:account agreement_read:account webhook_read:account webhook_write:account webhook_retention:account", string state = null)
         {
             return $"{this.WebAccessPoint}/public/oauth?redirect_uri={this.EscapeString(redirect_uri)}&response_type=code&client_id={this.ClientId}&scope={this.EscapeString(scope)}&state={this.EscapeString(state)}";
 
@@ -206,6 +207,47 @@ namespace AdobeSign.Client
         }
 
 
+        public Agreements.Api.AgreementsApi GetAgreementsApi()
+        {
+            return new Agreements.Api.AgreementsApi(this);
+        }
+        public BaseUris.Api.BaseUrisApi GetBaseUrisApi()
+        {
+            return new BaseUris.Api.BaseUrisApi(this);
+        }
+        public Groups.Api.GroupsApi GetGroupsApi()
+        {
+            return new Groups.Api.GroupsApi(this);
+        }
+        public LibraryDocuments.Api.LibraryDocumentsApi GetLibraryDocumentsApi()
+        {
+            return new LibraryDocuments.Api.LibraryDocumentsApi(this);
+        }
+        public MegaSigns.Api.MegaSignsApi GetMegaSignsApi()
+        {
+            return new MegaSigns.Api.MegaSignsApi(this);
+        }
+        public TransientDocuments.Api.TransientDocumentsApi GetTransientDocumentsApi()
+        {
+            return new TransientDocuments.Api.TransientDocumentsApi(this);
+        }
+        public Users.Api.UsersApi GetUsersApi()
+        {
+            return new Users.Api.UsersApi(this);
+        }
+        public Webhooks.Api.WebhooksApi GetWebhooksApi()
+        {
+            return new Webhooks.Api.WebhooksApi(this);
+        }
+        public Widgets.Api.WidgetsApi GetWidgetsApi()
+        {
+            return new Widgets.Api.WidgetsApi(this);
+        }
+        public Workflows.Api.WorkflowsApi GetWorkflowsApi()
+        {
+            return new Workflows.Api.WorkflowsApi(this);
+        }
+
         ///////////////////////////// /////////////////////////////
 
         /// <summary>
@@ -213,6 +255,7 @@ namespace AdobeSign.Client
         /// </summary>
         /// <value>An instance of the RestClient</value>
         internal RestClient RestClient { get; set; }
+
 
 
         /// <summary>
@@ -288,14 +331,22 @@ namespace AdobeSign.Client
                         a = JsonConvert.DeserializeObject<ApiError>(response.Content);
                 }
                 catch { }
-
+                
                 if (a != null)
-                    throw new ApiException((int)response.StatusCode, $"Error calling {method} {path}: {a.GetError()}", a.GetDescription());
+                    throw new ApiException((int)response.StatusCode, $"Error calling {method} {path}: {a.GetError()} {a.GetDescription()}",
+                        this.JsonPretty(request.Parameters.Where(p => p.Type == ParameterType.RequestBody).FirstOrDefault()?.Value)  ?? string.Join("\r\n",  request.Parameters.Where(x => x.Type != ParameterType.HttpHeader).Select(x=> $"{x.Name}={x.Value}")) );
+                else if (response.ContentType.StartsWith("text/html") || response.Content==null)
+                    throw new ApiException((int)response.StatusCode, $"Error calling {method} {path}: {(int)response.StatusCode} {response.StatusDescription}",
+                        this.JsonPretty(request.Parameters.Where(p => p.Type == ParameterType.RequestBody).FirstOrDefault()?.Value) ?? string.Join("\r\n", request.Parameters.Where(x=>x.Type!= ParameterType.HttpHeader).Select(x => $"{x.Name}={x.Value}")));
                 else
-                    throw new ApiException((int)response.StatusCode, $"Error calling {method} {path}: {response.Content}", response.Content);
+                    throw new ApiException((int)response.StatusCode, $"Error calling {method} {path}: {(int)response.StatusCode} {response.Content}", response.Content);
             }
             else if (((int)response.StatusCode) == 0)
                 throw new ApiException((int)response.StatusCode, $"Error calling {method} {path}: {response.ErrorMessage}", response.ErrorMessage);
+
+            var eTag = response.Headers.FirstOrDefault(x => x.Name == "ETag");
+            if (eTag != null)
+                this.LastETag = eTag.Value.ToString();
 
 
             return response;
@@ -307,7 +358,7 @@ namespace AdobeSign.Client
         /// <summary>
         /// Makes the HTTP GET request
         /// </summary>
-        internal IRestResponse GetRequest(String path, Dictionary<String, String> queryParams = null)
+        public IRestResponse CallApiGet(String path, Dictionary<String, String> queryParams = null)
         {
 
             var response = this.CallApi(path, Method.GET, queryParams, null, null, null, null, null);
@@ -317,20 +368,82 @@ namespace AdobeSign.Client
 
         }
         /// <summary>
-        /// Makes the HTTP GET request
+        /// Makes the HTTP POST request
         /// </summary>
-        internal T GetRequest<T>(String path, Dictionary<String, String> queryParams=null)
+        public IRestResponse CallApiPost(String path, Dictionary<String, String> formParams, Dictionary<String, String> queryParams = null)
         {
-            var response = GetRequest(path, queryParams);
-            return (T)this.Deserialize(response.Content, typeof(T), response.Headers);
+
+            var response = this.CallApi(path, Method.GET, queryParams, null, null, formParams, null, null);
+
+
+            return response;
+
         }
 
+        /// <summary>
+        /// Makes the HTTP POST request
+        /// </summary>
+        public IRestResponse CallApiPost(String path, String body, Dictionary<String, String> queryParams = null)
+        {
+
+            var response = this.CallApi(path, Method.GET, queryParams, body, null, null, null, null);
+
+
+            return response;
+
+        }
+
+
+        /// <summary>
+        /// Makes the HTTP PUT request
+        /// </summary>
+        public IRestResponse CallApiPut(String path, String body, Dictionary<String, String> queryParams = null)
+        {
+
+            var response = this.CallApi(path, Method.PUT, queryParams, body, null, null, null, null);
+
+
+            return response;
+
+        }
+
+
+        /// <summary>
+        /// Makes the HTTP DELETE request
+        /// </summary>
+        public IRestResponse CallApiDelete(String path, Dictionary<String, String> queryParams = null)
+        {
+
+            var response = this.CallApi(path, Method.DELETE, queryParams, null, null, null, null, null);
+
+
+            return response;
+
+        }
+        /// <summary>
+        /// Makes the HTTP GET request
+        /// </summary>
+        public T CallApiGet<T>(String path, Dictionary<String, String> queryParams=null)
+        {
+            var response = CallApiGet(path, queryParams);
+            return (T)this.Deserialize(response.Content, typeof(T), response.Headers);
+        }
 
 
         /// <summary>
         /// Makes the HTTP GET request
         /// </summary>
-        internal T FileRequest<T>(String path, byte[] data, string fileName, string mimeType)
+        public T CallApiPost<T>(String path, Dictionary<String, String> formParams, Dictionary<String, String> queryParams = null)
+        {
+            var response = CallApiPost(path, formParams, queryParams);
+            return (T)this.Deserialize(response.Content, typeof(T), response.Headers);
+        }
+
+
+        /// <summary>
+        /// Makes the HTTP POST request with multipart form file
+        /// </summary>
+        public IRestResponse CallApiFile(String path, byte[] data, string fileName, string mimeType)
         {
 
             var formParams = new Dictionary<String, String>();
@@ -343,8 +456,7 @@ namespace AdobeSign.Client
 
             var response = this.CallApi(path, Method.POST, null, null, null, formParams, fileParams, null);
 
-
-            return (T)this.Deserialize(response.Content, typeof(T), response.Headers);
+            return response;
 
         }
         /// <summary>
@@ -433,7 +545,6 @@ namespace AdobeSign.Client
             {
                 return ConvertType(content, type); 
             }
-    
             // at this point, it must be a model (json)
             try
             {
@@ -464,6 +575,29 @@ namespace AdobeSign.Client
 
 
 
+        internal string JsonPretty(object obj)
+        {
+            try
+            {
+                if (obj == null)
+                    return null;
+                if (obj is string)
+                    return JsonConvert.SerializeObject(JsonConvert.DeserializeObject((string)obj),  new JsonSerializerSettings()
+                    {
+                        Formatting = Formatting.Indented,
+                        NullValueHandling = NullValueHandling.Ignore
+                    });
+                else
+                    return JsonConvert.SerializeObject(obj,  new JsonSerializerSettings() { 
+                         Formatting = Formatting.Indented,
+                          NullValueHandling = NullValueHandling.Ignore
+                         });
+            }
+            catch 
+            {
+                return obj.ToString();
+            }
+        }
         /// <summary>
         /// Encode string in base64 format.
         /// </summary>

@@ -165,6 +165,8 @@ namespace AdobeSign.LibraryDocuments.Api
             if (xOnBehalfOfUser != null) headerParams.Add("x-on-behalf-of-user", ApiClient.ParameterToString(xOnBehalfOfUser)); // header parameter
             if (ifNoneMatch != null) headerParams.Add("If-None-Match", ApiClient.ParameterToString(ifNoneMatch)); // header parameter
 
+            headerParams.Add("Accept", "application/pdf");
+
             // authentication setting, if any
             String[] authSettings = new String[] { };
 
@@ -176,7 +178,7 @@ namespace AdobeSign.LibraryDocuments.Api
             else if (((int)response.StatusCode) == 0)
                 throw new ApiException((int)response.StatusCode, "Error calling GetCombinedDocument: " + response.ErrorMessage, response.ErrorMessage);
 
-            return (byte[])ApiClient.Deserialize(response.Content, typeof(byte[]), response.Headers);
+            return response.RawBytes;
         }
 
         /// <summary>
@@ -308,6 +310,8 @@ namespace AdobeSign.LibraryDocuments.Api
             if (xOnBehalfOfUser != null) headerParams.Add("x-on-behalf-of-user", ApiClient.ParameterToString(xOnBehalfOfUser)); // header parameter
             if (ifNoneMatch != null) headerParams.Add("If-None-Match", ApiClient.ParameterToString(ifNoneMatch)); // header parameter
 
+            headerParams.Add("Accept", "application/pdf");
+
             // authentication setting, if any
             String[] authSettings = new String[] { };
 
@@ -319,7 +323,7 @@ namespace AdobeSign.LibraryDocuments.Api
             else if (((int)response.StatusCode) == 0)
                 throw new ApiException((int)response.StatusCode, "Error calling GetFormData: " + response.ErrorMessage, response.ErrorMessage);
 
-            return (byte[])ApiClient.Deserialize(response.Content, typeof(byte[]), response.Headers);
+            return response.RawBytes;
         }
 
         /// <summary>
@@ -360,6 +364,8 @@ namespace AdobeSign.LibraryDocuments.Api
             if (xOnBehalfOfUser != null) headerParams.Add("x-on-behalf-of-user", ApiClient.ParameterToString(xOnBehalfOfUser)); // header parameter
             if (ifNoneMatch != null) headerParams.Add("If-None-Match", ApiClient.ParameterToString(ifNoneMatch)); // header parameter
 
+            headerParams.Add("Accept", "application/pdf");
+
             // authentication setting, if any
             String[] authSettings = new String[] { };
 
@@ -371,7 +377,7 @@ namespace AdobeSign.LibraryDocuments.Api
             else if (((int)response.StatusCode) == 0)
                 throw new ApiException((int)response.StatusCode, "Error calling GetLibraryDocument: " + response.ErrorMessage, response.ErrorMessage);
 
-            return (byte[])ApiClient.Deserialize(response.Content, typeof(byte[]), response.Headers);
+            return response.RawBytes;
         }
 
         /// <summary>
@@ -407,6 +413,8 @@ namespace AdobeSign.LibraryDocuments.Api
             if (xOnBehalfOfUser != null) headerParams.Add("x-on-behalf-of-user", ApiClient.ParameterToString(xOnBehalfOfUser)); // header parameter
             if (ifNoneMatch != null) headerParams.Add("If-None-Match", ApiClient.ParameterToString(ifNoneMatch)); // header parameter
 
+            headerParams.Add("Accept", "application/pdf");
+
             // authentication setting, if any
             String[] authSettings = new String[] { };
 
@@ -418,7 +426,7 @@ namespace AdobeSign.LibraryDocuments.Api
             else if (((int)response.StatusCode) == 0)
                 throw new ApiException((int)response.StatusCode, "Error calling GetLibraryDocumentAuditTrail: " + response.ErrorMessage, response.ErrorMessage);
 
-            return (byte[])ApiClient.Deserialize(response.Content, typeof(byte[]), response.Headers);
+            return response.RawBytes;
         }
 
         /// <summary>

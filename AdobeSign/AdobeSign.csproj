@@ -2,11 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>Marco Antonio Bender</Authors>
     <Product>AdobeSign API v6</Product>
     <Description>Adobe Sign REST API Version 6 for C# .NET Standart 2.0</Description>
     <SignAssembly>false</SignAssembly>
+    <Version>1.0.1</Version>
+    <RepositoryUrl>https://github.com/marcobender/AdobeSign</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>

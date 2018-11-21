@@ -306,6 +306,8 @@ namespace AdobeSign.Widgets.Api
             if (xOnBehalfOfUser != null) headerParams.Add("x-on-behalf-of-user", ApiClient.ParameterToString(xOnBehalfOfUser)); // header parameter
             if (ifNoneMatch != null) headerParams.Add("If-None-Match", ApiClient.ParameterToString(ifNoneMatch)); // header parameter
 
+            headerParams.Add("Accept", "application/pdf");
+
             // authentication setting, if any
             String[] authSettings = new String[] { };
 
@@ -317,7 +319,7 @@ namespace AdobeSign.Widgets.Api
             else if (((int)response.StatusCode) == 0)
                 throw new ApiException((int)response.StatusCode, "Error calling GetWidgetAuditTrail: " + response.ErrorMessage, response.ErrorMessage);
 
-            return (byte[])ApiClient.Deserialize(response.Content, typeof(byte[]), response.Headers);
+            return response.RawBytes;
         }
 
         /// <summary>
@@ -359,6 +361,8 @@ namespace AdobeSign.Widgets.Api
             if (xOnBehalfOfUser != null) headerParams.Add("x-on-behalf-of-user", ApiClient.ParameterToString(xOnBehalfOfUser)); // header parameter
             if (ifNoneMatch != null) headerParams.Add("If-None-Match", ApiClient.ParameterToString(ifNoneMatch)); // header parameter
 
+            headerParams.Add("Accept", "application/pdf");
+
             // authentication setting, if any
             String[] authSettings = new String[] { };
 
@@ -370,7 +374,7 @@ namespace AdobeSign.Widgets.Api
             else if (((int)response.StatusCode) == 0)
                 throw new ApiException((int)response.StatusCode, "Error calling GetWidgetCombinedDocument: " + response.ErrorMessage, response.ErrorMessage);
 
-            return (byte[])ApiClient.Deserialize(response.Content, typeof(byte[]), response.Headers);
+            return response.RawBytes;
         }
 
         /// <summary>
@@ -411,6 +415,8 @@ namespace AdobeSign.Widgets.Api
             if (xOnBehalfOfUser != null) headerParams.Add("x-on-behalf-of-user", ApiClient.ParameterToString(xOnBehalfOfUser)); // header parameter
             if (ifNoneMatch != null) headerParams.Add("If-None-Match", ApiClient.ParameterToString(ifNoneMatch)); // header parameter
 
+            headerParams.Add("Accept", "application/pdf");
+
             // authentication setting, if any
             String[] authSettings = new String[] { };
 
@@ -422,7 +428,7 @@ namespace AdobeSign.Widgets.Api
             else if (((int)response.StatusCode) == 0)
                 throw new ApiException((int)response.StatusCode, "Error calling GetWidgetDocumentInfo: " + response.ErrorMessage, response.ErrorMessage);
 
-            return (byte[])ApiClient.Deserialize(response.Content, typeof(byte[]), response.Headers);
+            return response.RawBytes;
         }
 
         /// <summary>
@@ -507,6 +513,8 @@ namespace AdobeSign.Widgets.Api
             if (xApiUser != null) headerParams.Add("x-api-user", ApiClient.ParameterToString(xApiUser)); // header parameter
             if (xOnBehalfOfUser != null) headerParams.Add("x-on-behalf-of-user", ApiClient.ParameterToString(xOnBehalfOfUser)); // header parameter
 
+            headerParams.Add("Accept", "application/pdf");
+
             // authentication setting, if any
             String[] authSettings = new String[] { };
 
@@ -518,7 +526,7 @@ namespace AdobeSign.Widgets.Api
             else if (((int)response.StatusCode) == 0)
                 throw new ApiException((int)response.StatusCode, "Error calling GetWidgetFormData: " + response.ErrorMessage, response.ErrorMessage);
 
-            return (byte[])ApiClient.Deserialize(response.Content, typeof(byte[]), response.Headers);
+            return response.RawBytes;
         }
 
         /// <summary>

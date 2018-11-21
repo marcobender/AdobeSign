@@ -85,12 +85,15 @@ namespace AdobeSign.Webhooks.Api
         /// <param name="xApiUser">The userId or email of API caller using the account or group token in the format &lt;b&gt;userid:{userId} OR email:{email}.&lt;/b&gt; If it is not specified, then the caller is inferred from the token.</param> 
         /// <param name="xOnBehalfOfUser">The userId or email in the format &lt;b&gt;userid:{userId} OR email:{email}.&lt;/b&gt; of the user that has shared his/her account</param> 
         /// <returns></returns>            
-        public void DeleteWebhook (string ifMatch, string webhookId, string xApiUser = null, string xOnBehalfOfUser = null)
+        public void DeleteWebhook ( string webhookId, string ifMatch =null, string xApiUser = null, string xOnBehalfOfUser = null)
         {
-            
+
             // verify the required parameter 'authorization' is set
-            
-            
+
+
+            if (ifMatch == null)
+                ifMatch = ApiClient.LastETag;
+
             // verify the required parameter 'ifMatch' is set
             if (ifMatch == null) throw new ApiException(400, "Missing required parameter 'ifMatch' when calling DeleteWebhook");
             

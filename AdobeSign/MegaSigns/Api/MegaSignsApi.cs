@@ -113,6 +113,8 @@ namespace AdobeSign.MegaSigns.Api
             if (xOnBehalfOfUser != null) headerParams.Add("x-on-behalf-of-user", ApiClient.ParameterToString(xOnBehalfOfUser)); // header parameter
             if (ifNoneMatch != null) headerParams.Add("If-None-Match", ApiClient.ParameterToString(ifNoneMatch)); // header parameter
 
+            headerParams.Add("Accept", "application/pdf");
+
             // authentication setting, if any
             String[] authSettings = new String[] { };
 
@@ -124,7 +126,7 @@ namespace AdobeSign.MegaSigns.Api
             else if (((int)response.StatusCode) == 0)
                 throw new ApiException((int)response.StatusCode, "Error calling GetChildAgreementsInfoFile: " + response.ErrorMessage, response.ErrorMessage);
 
-            return (byte[])ApiClient.Deserialize(response.Content, typeof(byte[]), response.Headers);
+            return response.RawBytes;
         }
 
         /// <summary>
@@ -258,6 +260,8 @@ namespace AdobeSign.MegaSigns.Api
             if (xOnBehalfOfUser != null) headerParams.Add("x-on-behalf-of-user", ApiClient.ParameterToString(xOnBehalfOfUser)); // header parameter
             if (ifNoneMatch != null) headerParams.Add("If-None-Match", ApiClient.ParameterToString(ifNoneMatch)); // header parameter
 
+            headerParams.Add("Accept", "application/pdf");
+
             // authentication setting, if any
             String[] authSettings = new String[] { };
 
@@ -269,9 +273,8 @@ namespace AdobeSign.MegaSigns.Api
             else if (((int)response.StatusCode) == 0)
                 throw new ApiException((int)response.StatusCode, "Error calling GetMegaSignCombinedDocument: " + response.ErrorMessage, response.ErrorMessage);
 
-            return (byte[])ApiClient.Deserialize(response.Content, typeof(byte[]), response.Headers);
+            return response.RawBytes;
         }
-
         /// <summary>
         /// Retrieves data entered by recipients into interactive form fields at the time they signed the child agreements of the specified MegaSign agreement CSV file stream containing form data information
         /// </summary>
@@ -303,6 +306,8 @@ namespace AdobeSign.MegaSigns.Api
             if (xApiUser != null) headerParams.Add("x-api-user", ApiClient.ParameterToString(xApiUser)); // header parameter
             if (xOnBehalfOfUser != null) headerParams.Add("x-on-behalf-of-user", ApiClient.ParameterToString(xOnBehalfOfUser)); // header parameter
 
+            headerParams.Add("Accept", "application/pdf");
+
             // authentication setting, if any
             String[] authSettings = new String[] { };
 
@@ -314,7 +319,7 @@ namespace AdobeSign.MegaSigns.Api
             else if (((int)response.StatusCode) == 0)
                 throw new ApiException((int)response.StatusCode, "Error calling GetMegaSignFormData: " + response.ErrorMessage, response.ErrorMessage);
 
-            return (byte[])ApiClient.Deserialize(response.Content, typeof(byte[]), response.Headers);
+            return response.RawBytes;
         }
 
         /// <summary>
