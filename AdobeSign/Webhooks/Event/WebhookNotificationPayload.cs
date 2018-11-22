@@ -9,6 +9,9 @@ using Newtonsoft.Json.Converters;
 
 namespace AdobeSign.Webhooks.Event
 {
+    /// <summary>
+    /// Notification payload for events <see cref="https://www.adobe.io/apis/documentcloud/sign/docs.html#payloadinfo"/>
+    /// </summary>
     [DataContract]
     public partial class WebhookNotificationPayload
     {
@@ -66,7 +69,7 @@ namespace AdobeSign.Webhooks.Event
         /// Timestamp of when the event happened.
         /// </summary>
         [JsonProperty("eventDate")]
-        public string EventDate { get; set; }
+        public DateTime? EventDate { get; set; }
 
         /// <summary>
         /// The resource type on which the event is triggered.
@@ -139,6 +142,24 @@ namespace AdobeSign.Webhooks.Event
         /// </summary>
         [JsonProperty("agreement")]
         public Agreement Agreement { get; set; }
+
+
+        [JsonProperty("libraryDocument")]
+        public LibraryDocument LibraryDocument { get; set; }
+
+        /// <summary>
+        /// Information about the widget on which the event occurred. This key will be returned only if the event is a widget event.
+        /// </summary>
+        [JsonProperty("widget")]
+        public Widget Widget { get; set; }
+
+
+        /// <summary>
+        /// nformation about the megaSign on which the event occurred. This key will be returned only if the event is a megaSign event.
+        /// </summary>
+        [JsonProperty("megaSign")]
+        public MegaSign MegaSign { get; set; }
+
     }
 
 }

@@ -162,7 +162,7 @@ namespace AdobeSign.Tester.Controllers
                             }
                         },
                         ExternalId= new Agreements.Model.ExternalId() {
-                             Id =  "Intake-" + DateTime.Now.Second.ToString("00")
+                             Id = "Intake-11"
                         },
                         Name = "Test at " + DateTime.Now.ToString(),
                         ParticipantSetsInfo = new List<Agreements.Model.ParticipantSetInfo>()
@@ -216,7 +216,7 @@ namespace AdobeSign.Tester.Controllers
                 else if (Request["action"] == "GetAgreements")
                 {
                     var c = new AdobeSign.Agreements.Api.AgreementsApi(apiClient);
-                    var r = c.GetAgreements();
+                    var r = c.GetAgreements("Intake-11", true);
 
                     ViewBag.Stuff = JsonConvert.SerializeObject(r, Formatting.Indented);
 

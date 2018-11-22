@@ -1,13 +1,13 @@
 ﻿using System;
 using Newtonsoft.Json;
 
+
 namespace AdobeSign.Webhooks.Event
 {
-
-    public class Agreement
+    public class MegaSign
     {
         /// <summary>
-        /// The unique identifier of agreement that can be used to query status and download signed documents.
+        /// The unique identifier of the agreement; it can be used to query status and download signed documents.
         /// </summary>
         [JsonProperty("id")]
         public string Id { get; set; }
@@ -18,9 +18,6 @@ namespace AdobeSign.Webhooks.Event
         [JsonProperty("name")]
         public string Name { get; set; }
 
-        [JsonProperty("signatureType")]
-        public string SignatureType { get; set; }
-
         /// <summary>
         /// The current status of the agreement. (OUT_FOR_SIGNATURE, SIGNED, APPROVED, ACCEPTED, DELIVERED, FORM_FILLED, ABORTED, EXPIRED, OUT_FOR_APPROVAL, OUT_FOR_ACCEPTANCE, OUT_FOR_DELIVERY, OUT_FOR_FORM_FILLING, or CANCELLED)
         /// </summary>
@@ -30,24 +27,17 @@ namespace AdobeSign.Webhooks.Event
         [JsonProperty("ccs")]
         public Cc[] Ccs { get; set; }
 
-        [JsonProperty("deviceInfo")]
-        public DeviceInfo DeviceInfo { get; set; }
-
-        [JsonProperty("documentVisibilityEnabled")]
-        public bool? DocumentVisibilityEnabled { get; set; }
+        [JsonProperty("childAgreementsInfo")]
+        public ChildAgreementsInfo ChildAgreementsInfo { get; set; }
 
         [JsonProperty("createdDate")]
-        public DateTime? CreatedDate { get; set; }
-
+        public string CreatedDate { get; set; }
 
         [JsonProperty("expirationTime")]
-        public DateTime? ExpirationTime { get; set; }
+        public string ExpirationTime { get; set; }
 
         [JsonProperty("externalId")]
         public ExternalId ExternalId { get; set; }
-
-        [JsonProperty("postSignOption")]
-        public PostSignOption PostSignOption { get; set; }
 
         [JsonProperty("firstReminderDelay")]
         public string FirstReminderDelay { get; set; }
@@ -58,27 +48,20 @@ namespace AdobeSign.Webhooks.Event
         [JsonProperty("message")]
         public string Message { get; set; }
 
+        [JsonProperty("postSignOption")]
+        public PostSignOption PostSignOption { get; set; }
+
         [JsonProperty("reminderFrequency")]
         public string ReminderFrequency { get; set; }
 
         [JsonProperty("senderEmail")]
         public string SenderEmail { get; set; }
 
+        [JsonProperty("signatureType")]
+        public string SignatureType { get; set; }
+
         [JsonProperty("vaultingInfo")]
         public VaultingInfo VaultingInfo { get; set; }
-
-        [JsonProperty("workflowId")]
-        public string WorkflowId { get; set; }
-
-        [JsonProperty("participantSetsInfo")]
-        public ParticipantSetsInfo ParticipantSetsInfo { get; set; }
-
-        [JsonProperty("documentsInfo")]
-        public DocumentsInfo DocumentsInfo { get; set; }
-
-        [JsonProperty("signedDocumentInfo")]
-        public SignedDocumentInfo SignedDocumentInfo { get; set; }
     }
-   
-   
+
 }
