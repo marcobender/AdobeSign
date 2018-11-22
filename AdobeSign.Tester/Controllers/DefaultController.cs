@@ -161,6 +161,9 @@ namespace AdobeSign.Tester.Controllers
                                  TransientDocumentId = (string)Session["TransientDocumentId"]
                             }
                         },
+                        ExternalId= new Agreements.Model.ExternalId() {
+                             Id =  "Intake-" + DateTime.Now.Second.ToString("00")
+                        },
                         Name = "Test at " + DateTime.Now.ToString(),
                         ParticipantSetsInfo = new List<Agreements.Model.ParticipantSetInfo>()
                         {
